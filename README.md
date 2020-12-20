@@ -1,4 +1,4 @@
-# Hero Fortress, a custom Team Fortress 2 Gamemode.
+# Hero Fortress, a custom Team Fortress 2 Gamemode. (Public Version)
 
 Hero Fortress is based on lots of various team based (hero) shooters.
 
@@ -10,8 +10,7 @@ It currently features:
 
 BIG Maps are reccomended for this gamemode. While it can run on smaller maps, it gets cramped real quick on big player count. (More than 16 players)
 
-This is Redsun only fork, if you see this. Don't be a poopy head.
-
+This is a public fork. Some features may or may not be outdated.
 
 # Requirements:
 
@@ -25,7 +24,6 @@ This is Redsun only fork, if you see this. Don't be a poopy head.
 
 Nuke TF2Items requirement.
 
-Make code more readabl I guess.
 
 # Credits:
 
