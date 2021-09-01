@@ -110,10 +110,15 @@ int iPlayerLateCompensationSeconds[TF_MAXPLAYERS+1];
 #include "hf/hf_map_stuff.sp"
 #include "hf/hf_caching.sp"
 #include "hf/hf_menus.sp"
-#include "hf/hf_rs_cheevos.sp" 
+#include "hf/hf_include.sp" 
 //#include "hf/hf_sdkcall.sp" 
 //#include "hf/hf_dhook.sp"
 #include <clientprefs>
+
+public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max)
+{
+	RegInclude();
+}
 
 public void OnPluginStart() //
 {
@@ -138,15 +143,6 @@ public void OnPluginStart() //
 		fChill[i] = 0.0;
 		bRentingUltWeapon[i] = false;
 		bInSpawn[i] = false;
-		
-		//cheevo
-		coveredPlayersInPiss[i] = 0;
-		playerDamageTotal[i] = 0;
-		killedPlayersDuringUltimate[i] = 0;
-		for (int c = 0; c <= 7; c++)
-		{
-			cheevos[c][i] = false;
-		}
 		iPlayerHasConsumableType[i] = 0;
 	}
 	CreateHudSynchronizer();
@@ -176,9 +172,7 @@ void HookEvents()
 	HookEvent("player_spawn", PlayerSpawn);
 	HookEvent("teamplay_round_start", OnTeamplayRoundStart);
 	HookEvent("player_changeclass", OnPlayerChangeClass);
-	HookEvent("player_death", OnPlayerDeath);
 	HookEvent("player_hurt", OnPlayerDamaged);
-	HookEvent("player_death", OnPlayerDeath);
 	HookEvent("teamplay_point_captured", TeamplayPointCaptured);
 }
 
@@ -215,66 +209,11 @@ public void OnMapStart()
 		iCustomItemSlot_1[i] = -1;
 		iCustomItemSlot_2[i] = -1;
 		iPlayerLateCompensationSeconds[i] = 0;
-		playerDamageTotal[i] = 0;
 		bInSpawn[i] = false;
 		
 		initialNotificationSpamTimer[i] = 0;
 		initialNotificationBool[i] = false;
 		iConsumableItemCD[i] = 0;
-		for (int c = 0; c <= 7; c++)
-		{
-			cheevos[c][i] = false;
-		}
-	}
-}
-
-public void OnPlayerDeath(Event hEvent, const char[] name, bool dontBroadcast)
-{
-	int attacker = GetClientOfUserId(GetEventInt(hEvent, "attacker"));
-	int victim = GetClientOfUserId(GetEventInt(hEvent, "userid"));
-	char weapon[64];
-	hEvent.GetString("weapon", weapon, sizeof(weapon));
-	
-	if(IsValidClient(victim) && victim > 0 && IsValidClient(attacker) && attacker != victim)
-	{
-		if(victim != attacker)
-		{
-			float distanceVector;
-			
-			float attackerPos[3];
-			float victimPos[3];
-			
-			GetClientAbsOrigin (attacker, attackerPos);
-			GetClientAbsOrigin (victim, victimPos);
-			
-			distanceVector = GetVectorDistance(attackerPos, victimPos);
-			if(distanceVector < 200.0)
-			{
-				if(iPlayerIsClassID[victim] == 6)
-				{
-					if(iUltimateSecondsLeft[victim] > 0)
-					{
-						PrintToServer("Tank Death Cheevo Test");
-						CheckCheevos(attacker,1);
-					}
-					
-				}
-			}
-			if(iUltimateSecondsLeft[attacker] > 0)
-			{
-				if(StrEqual(weapon, "world") || StrEqual(weapon, "trigger_hurt"))
-				{
-					if(iPlayerIsClassID[attacker] == 4)
-					{
-						PrintToServer("Clown death");
-						CheckCheevos(attacker,6);
-					}
-				}
-				
-				killedPlayersDuringUltimate[attacker]++;
-				CheckCheevos(attacker,3);
-			}
-		}
 	}
 }
 
@@ -287,14 +226,6 @@ public void OnPlayerDamaged(Handle hEvent, const char[] name, bool dontBroadcast
 	{
 		if(victim != attacker)
 		{
-			if(damage < 800)
-			{
-				playerDamageTotal[attacker] += damage;	//because backstabs are broken. lets not count them anymore.
-			}
-			
-			CheckCheevos(attacker,7);
-			//	PrintToChat(attacker, "damage %i",playerDamageTotal[attacker] );
-			
 			/// for bought items p much.
 			
 			if(iCustomItemSlot_0[attacker] == 4 || iCustomItemSlot_1[attacker] == 4 || iCustomItemSlot_2[attacker] == 4)
@@ -500,7 +431,6 @@ public void PlayerSpawn (Event hEvent, const char[] sEvName, bool bDontBroadcast
 			case 2:
 			{
 			//	CPrintToChat(iClient, "You are now playing as a {gold}Sniper!");
-				coveredPlayersInPiss[iClient] = 0;
 				AddHP(iClient, 25);
 				SetEntityHealth(iClient, 150); //max hp reset cause needed
 			}
@@ -674,17 +604,6 @@ public Action hf_Ultimate(int iClient,int args){ //self explanatory.
 	}
 	else if(IsPlayerAlive(iClient) && bUltReadyPerPlayer[iClient] == true)
 	{
-		
-		if(GetClientHealth(iClient) < 25)
-		{
-			switch(iPlayerIsClassID[iClient])
-			{
-				case 5,6,9:
-				{
-					CheckCheevos(iClient,0);
-				}
-			}
-		}
 		UltimateEvent(iClient);
 		return Plugin_Handled;
 	}
@@ -751,6 +670,10 @@ public void UltimateEvent(int iClient)
 				TF2_AddCondition(iClient, TFCond_CritOnFirstBlood  , SniperUltDuration , 0); 		//crits
 				TF2_AddCondition(iClient, TFCond_RunePrecision , SniperUltDuration, 0); 			//accuracy
 				iUltimateSecondsLeft[iClient] = RoundToZero(SniperUltDuration);
+				
+				int coveredPlayers[MAXPLAYERS];
+				int count;
+				
 				for(int i = 1; i < TF_MAXPLAYERS+1; i++)
 				{
 					if(IsValidClient(i))
@@ -762,20 +685,22 @@ public void UltimateEvent(int iClient)
 							float attackerPos[3];
 							float victimPos[3];
 							
-							GetClientAbsOrigin (iClient, attackerPos);
-							GetClientAbsOrigin (i, victimPos);
+							GetClientAbsOrigin(iClient, attackerPos);
+							GetClientAbsOrigin(i, victimPos);
 							
 							distanceVector = GetVectorDistance(attackerPos, victimPos);
 							if(distanceVector < 800.0)
 							{
 								CPrintToChat(i, "{fullred}You got affected by Sniper's ultimate.");
-								coveredPlayersInPiss[iClient]++;
-								CheckCheevos(iClient,2);
 								TF2_AddCondition(i, TFCond_Jarated , 10.0, 0); 			//piss
+								coveredPlayers[count] = i;
+								count++;
 							}
 						}
 					}
 				}
+				
+				Forward_OnSniperUseUltimate(iClient, coveredPlayers, count);
 			}
 			case 3:
 			{
@@ -1049,9 +974,15 @@ public void UltimateEvent(int iClient)
 				SetUltModelTest(iClient);
 			}
 		}
-		hf_func_PlayUltimateSound(iClient, iPlayerIsClassID[iClient]); //loudness?
 		
-	}else CPrintToChat(iClient, "{fullred}You can't ultimate in spawn!");
+		
+		hf_func_PlayUltimateSound(iClient, iPlayerIsClassID[iClient]); //loudness?
+		Forward_OnClientUseUltimate(iClient);
+	}
+	else
+	{
+		CPrintToChat(iClient, "{fullred}You can't ultimate in spawn!");
+	}
 }
 
 
@@ -1460,7 +1391,6 @@ public Action ultCheckerButton() //improved ultimate button reaction ig
 			
 			if(bUltReadyPerPlayer[i] == false && iUltimateSecondsLeft[i] == 0)
 			{
-				killedPlayersDuringUltimate[i] = 0;
 				SetHudTextParams(-1.0,-0.25, 0.15, 255,255,255,255, 0 , 1.0, 0.0, 0.2);
 				if(bRentingUltWeapon[i] == true)
 				{
@@ -1545,14 +1475,6 @@ public Action ultCheckerButton() //improved ultimate button reaction ig
 					if(iUltimateSecondsLeft[i] == 0  && iUltChargePerPlayer[i] == 1)
 					{
 						TF2_AddCondition(i, TFCond_SpeedBuffAlly   , 0.010 , 0);
-					}
-					
-				}
-				case 2:
-				{
-					if(iUltimateSecondsLeft[i] == 1)
-					{
-						coveredPlayersInPiss[i] = 0;
 					}
 					
 				}
@@ -1780,14 +1702,9 @@ public void OnClientDisconnect(int iClient) //self explanatory.
 		iCustomItemSlot_2[iClient] = -1;
 		bPlayerHudPreference[iClient] = false;
 		bPlayerBuyMenuPreference[iClient] = false;
-		//cheevo
-		playerDamageTotal[iClient] = 0;
-		killedPlayersDuringUltimate[iClient] = 0;
+		
 		iPlayerLateCompensationSeconds[iClient] = 300;
-		for (int c = 0; c <= 7; c++)
-		{
-			cheevos[c][iClient] = false;
-		}
+		
 		PrintToServer("player %p left, removing their shit from the gamemode.", iClient);
 	}
 }
