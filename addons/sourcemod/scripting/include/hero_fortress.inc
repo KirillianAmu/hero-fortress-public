@@ -4,31 +4,28 @@
 #define _hero_fortress_included
 
 /**
- * Forward called when survivor is about to pick up a weapon
+ * Forward called when client used ultimate
  *
- * @param	iClient		Client whose picked up the weapon
- * @param	iTarget		Prop entity whose picked up
- * @param	rarity		Rarity of the weapon
- * @return	Plugin_Handled to prevent picking up the weapon, Plugin_Stop to also prevent calling out rare weapons, Plugin_Continue otherwise
+ * @param	client			Client whose used ultimate
+ * @noreturn
  */
 forward void HF_OnClientUseUltimate(int client);
 
 /**
- * Forward called when a boomer explodes
+ * Forward called when a sniper used ultimate
  *
- * @param	iBoomer		Client whose the boomer explode
- * @param	iClients	Array of clients whose jarated from boomer
- * @param	iLength		Amount of clients jarated from boomer
+ * @param	client			Sniper whose used ultimate
+ * @param	coveredPlayers	Array of clients whose covered from jarate
+ * @param	count			Amount of clients covered from jarate
  * @noreturn
  */
 forward void HF_OnSniperUseUltimate(int client, int coveredPlayers[MAXPLAYERS], int count);
 
 /**
- * Gets client total weapon callout counts stored in cookies
+ * Returns whenever if client is currently in ultimate
  *
- * @param	iClient		Client whose to get weapon callout counts
- * @return	Weapon callout counts
- * @error	Invalid client or client not in game
+ * @param	client			Client whose to check
+ * @error	True if client is currently in ultimate, false otherwise
  */
 native bool HF_IsClientInUltimate(int client);
 
