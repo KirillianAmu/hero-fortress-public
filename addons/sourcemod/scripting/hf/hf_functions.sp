@@ -287,7 +287,7 @@ public void hf_func_PlayItemSound(int iClient, int itemSoundVal)
 	}
 }
 
-char GetConsumableItem(int iClient)
+char[] GetConsumableItem(int iClient)
 {
 	char itemName[64];
 	switch(iPlayerHasConsumableType[iClient])
@@ -773,7 +773,7 @@ public void GetClassInformation(int iClient, int characterClass)
     CPrintToChat(iClient, "{yellow} --------------------------------------------");
 }
  
-char GetEquippedItem(int iClient,int slot)
+char[] GetEquippedItem(int iClient,int slot)
 {
 	char itemName[64];
 	switch(slot)
@@ -1114,7 +1114,7 @@ public void SpawnEndTouch(int spawn, int iClient)
 }
 
 
-public void CreateSentryGun(int iClient,int createEntityByNameINT, float[3] vector3PlrOrigin, float[3] eyeangles, int iTeam)
+public void CreateSentryGun(int iClient, int createEntityByNameINT, float vector3PlrOrigin[3], float eyeangles[3], int iTeam)
 {
 	
 	float fBuildMaxs[3];

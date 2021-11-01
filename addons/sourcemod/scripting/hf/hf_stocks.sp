@@ -20,7 +20,7 @@ stock int TF2_GetHealingTarget(int iClient)
 	return -1;
 }
 
-stock int SetAmmo(int client,int wepslot,int newAmmo)
+stock void SetAmmo(int client,int wepslot,int newAmmo)
 {
 	int weapon = GetPlayerWeaponSlot(client, wepslot);
 	if (IsValidEntity(weapon))
@@ -36,7 +36,7 @@ stock bool IsWeaponSlotActive(int iClient, int iSlot)
 	return GetPlayerWeaponSlot(iClient, iSlot) == GetEntPropEnt(iClient, Prop_Send, "m_hActiveWeapon");
 }
 
-stock int TF2_GetCurrentWeaponClass(int iClient, char name[64], int maxlength)
+stock void TF2_GetCurrentWeaponClass(int iClient, char name[64], int maxlength)
 {
 	int index;
 	if( iClient > 0 )

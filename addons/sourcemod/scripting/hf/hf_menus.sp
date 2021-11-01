@@ -426,9 +426,11 @@ public int MenuHandler_Consumables(Menu menu, MenuAction action, int iClient, in
 			}
 		}
 	}
+	
+	return 0;
 }
 
-char ItemPriceToString(int convertItemID)
+char[] ItemPriceToString(int convertItemID)
 {
 	char itemPricingStr[64];
 	switch(convertItemID)
@@ -527,7 +529,7 @@ char ItemPriceToString(int convertItemID)
 	return itemPricingStr;
 }
 
-char ConsumableItemPriceToString(int convertItemID)
+char[] ConsumableItemPriceToString(int convertItemID)
 {
 	char itemPricingStr[64];
 	switch(convertItemID)

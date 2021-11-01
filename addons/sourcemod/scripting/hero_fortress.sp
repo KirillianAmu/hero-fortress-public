@@ -77,12 +77,12 @@ int iCredits[TF_MAXPLAYERS + 1];
 
 int iUltChargeRequired; // currently just 100. Name is self explanatory.
 int iUltChargePerPlayer[TF_MAXPLAYERS+1]; //CURRENT ultimate charge for each player
-bool[TF_MAXPLAYERS+1] bUltReadyPerPlayer; //bool for each player who has the ultimate ready.
+bool bUltReadyPerPlayer[TF_MAXPLAYERS+1]; //bool for each player who has the ultimate ready.
 
 float fUltimateSpeedRate[10]; //ult secs before adding percents now.
 float fUltimateSpeedRateCurrent[TF_MAXPLAYERS+1]; //current secs before giving the ult percentage
 
-bool[TF_MAXPLAYERS+1] bHpPerPlayer; //for checking if player has added HP
+bool bHpPerPlayer[TF_MAXPLAYERS+1]; //for checking if player has added HP
 
 bool bPlayerNewMaxHP[TF_MAXPLAYERS+1]; //self explanatory.
 int bPlayerBaseMaxHP[TF_MAXPLAYERS+1]; //self explanatory.
@@ -118,6 +118,7 @@ int iPlayerLateCompensationSeconds[TF_MAXPLAYERS+1];
 public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max)
 {
 	RegInclude();
+	return APLRes_Success;
 }
 
 public void OnPluginStart() //
@@ -507,7 +508,6 @@ public void PlayerSpawn (Event hEvent, const char[] sEvName, bool bDontBroadcast
 	}
 }
 
-
 public Action OnPlayerRunCmd(int iClient, int &buttons)
 {
 	if(fChill[iClient] <= 0.0)
@@ -564,9 +564,11 @@ public Action OnPlayerRunCmd(int iClient, int &buttons)
 			}
 		}
 	}
+	
+	return Plugin_Continue;
 }
 
-Action TeamplayPointCaptured(Event hEvent, const char[] name, bool dontBroadcast)
+void TeamplayPointCaptured(Event hEvent, const char[] name, bool dontBroadcast)
 {
 	int team = hEvent.GetInt("team"); //no idea whats wrong with that warning
 	for(int i = 1; i < TF_MAXPLAYERS+1; i++)
@@ -587,7 +589,7 @@ Action TeamplayPointCaptured(Event hEvent, const char[] name, bool dontBroadcast
 
 public Action ActivateConsumableItem(int iClient,int args) //self explanatory.
 {
-	
+	return Plugin_Continue;
 }
 
 public Action hf_Ultimate(int iClient,int args){ //self explanatory.
@@ -1356,7 +1358,7 @@ void stalemateChecker()
 	
 }
 
-public Action ultCheckerButton() //improved ultimate button reaction ig
+public void ultCheckerButton() //improved ultimate button reaction ig
 {
 	for(int i = 1; i < TF_MAXPLAYERS+1; i++)
 	{
@@ -1535,7 +1537,7 @@ public Action ultCheckerButton() //improved ultimate button reaction ig
 	}
 	
 }
-public Action ultChecker()  //Tick rate, not just ults. But for everything in general
+public void ultChecker()  //Tick rate, not just ults. But for everything in general
 {
 	//int clownTimer;
 	//GetMapTimeLeft(clownTimer);
@@ -1633,7 +1635,7 @@ public Action ultChecker()  //Tick rate, not just ults. But for everything in ge
 						
 					}
 				}
-				switch(fUltimateSpeedRate[iPlayerIsClassID[i]]) //shitty way of fixing the charge rate notification, but it works. 1 is slow, 2 is normal, 3 is fast.
+				switch(RoundToNearest(fUltimateSpeedRate[iPlayerIsClassID[i]])) //shitty way of fixing the charge rate notification, but it works. 1 is slow, 2 is normal, 3 is fast.
 				{
 					case 1:
 					{
@@ -1884,6 +1886,8 @@ public Action DebugUlt(int iClient,int args) //charge ultiamte for everyone. Adm
 	{
 		PrintToChat(iClient, "Only administrators can use this command.");
 	}
+	
+	return Plugin_Continue;
 }
 
 public Action DebugUltOnlyClient(int iClient, int args) //charge ultiamte for client. Admin only.
@@ -1899,6 +1903,8 @@ public Action DebugUltOnlyClient(int iClient, int args) //charge ultiamte for cl
 	{
 		PrintToChat(iClient, "Only administrators can use this command.");
 	}
+	
+	return Plugin_Continue;
 }
 
 public Action DebugUltOnlyClientMoney(int iClient, int args) //give yourself money. Admin only
@@ -1912,6 +1918,8 @@ public Action DebugUltOnlyClientMoney(int iClient, int args) //give yourself mon
 	{
 		PrintToChat(iClient, "Only administrators can use this command.");
 	}
+	
+	return Plugin_Continue;
 }
  //debug ends here
 
